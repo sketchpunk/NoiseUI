@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="noiseui.css">
+		<script src="perlinNoise.js"></script>
+		<script src="noiseui.js"></script>
+	</head>
+<body>
+
+<div class="canvasGrid">
+	<section>
+		<div class="NodeContainer">
+			<header>Sine Wave</header>
+			<canvas id="canvas1"></canvas>
+			<div class="ctrRow">
+				<span>Aptitude : </span><label>60</label><input id="apt1" class="slider" type="range" min="10" max="400" value="60" onInput="preview(this);" onChange="setAptitude(d1,this)"/>
+			</div>
+			<div class="ctrRow">
+				<span>Scale : </span><label>0.21</label><input id="scale1"  class="slider" type="range" min="0.1" max="10" value="0.21" step="0.01" onInput="preview(this);" onChange="setScale(d1,this)"/>
+			</div>
+		</div>
+
+	</section>
+
+	<section>
+		<div class="NodeContainer">
+			<header>Perlin Noise</header>
+			<canvas id="canvas2"></canvas>
+			<div class="ctrRow">
+				<span>Aptitude : </span><label>219</label><input id="apt2" class="slider" type="range" min="10" max="400" value="219" onInput="preview(this);" onChange="setAptitude(d2,this)"/>
+			</div>
+			<div class="ctrRow">
+				<span>Scale : </span><label>0.11</label><input id="scale2"  class="slider" type="range" min="0.01" max="10" value="0.11" step="0.01" onInput="preview(this);" onChange="setScale(d2,this)"/>
+			</div>
+
+			<div class="ctrRow">
+				<span>Y : </span><label>0.59</label><input id="py1" class="slider" type="range" min="0" max="10" value="0.59" step="0.01" onInput="preview(this);" onChange="setY(d2,this)"/>
+			</div>
+
+			<div class="ctrRow">
+				<span>Z : </span><label>0.06</label><input id="py1" class="slider" type="range" min="0" max="10" value="0.06" step="0.01" onInput="preview(this);" onChange="setZ(d2,this)"/>
+			</div>
+		</div>
+	</section>
+
+	<section>
+		<div class="NodeContainer">
+			<header>Math.Randomness :)</header>
+			<canvas id="canvas3"></canvas>
+			<div class="ctrRow">
+				<span>Aptitude : </span><label>10</label><input id="apt2" class="slider" type="range" min="0" max="150" value="10" onInput="preview(this);" onChange="setAptitude(d3,this)"/>
+			</div>
+		</div>
+	</section>
+</div>
+
+<div class="canvasGrid">
+	<section>
+		<p style="color:#a0a0a0; bottom:1px;">
+			<i style="color:lime;">Noise UI</i><br>
+			Anther UI experiment brought to you by Vor. I saw a lecture video a long while ago about using perlin noise
+			to generate terrain height maps. He demoed the concept using an interface like this where you have 3 curves
+			that you can merge together to create hills and valleys. I've done quite a bit of learning about randomness 
+			and noise that I thought it would be cool to play with that interface. I looked around for the video but 
+			couldn't find it to see if there was a link to what he used or created. Necessity is the mother of invention,
+			so what better way to learn this stuff then to build the ui for it. Used my previous UI experiement NEditorJS
+			for the base look then went to town putting it together. Side note, people asked why I didn't use ES6 in NEditor,
+			for shitz + giggles this was coded in ES6 instead of old classic js. Enjoy.<br><br>
+
+			- <a href="https://github.com/sketchpunk/NoiseUI" style="color:orange;text-decoration:none;">NoiseUI at Github</a><br>
+			- <a href="https://github.com/sketchpunk/NEditorJS" style="color:orange; text-decoration:none;">NEditorJS at Github</a><br>
+			<br><br>&copy; 2016 Sketchpunk Labs;
+		</p>
+	</section>
+
+	<section>
+		<div class="NodeContainer">
+			<header>Merged Results</header>
+			<canvas id="canvasF"></canvas>
+			<div class="ctrRow">
+				<span>Frequency : </span><label>30</label><input id="freq1" class="slider" type="range" min="10" max="100" value="30" onInput="preview(this);" onChange="setFreq(this)"/>
+			</div>
+
+			<div class="ctrRow">
+				<span>Merge Method : </span>
+				<input type="radio" id="rmerge1" name="rmerge" onClick="setMerge(0);" checked><label for="rmerge1">Add</label>
+				<input type="radio" id="rmerge2" name="rmerge" onClick="setMerge(1);"><label for="rmerge2">Average</label>
+			</div>
+
+			<div class="ctrRow">
+				<span>Use : </span>
+				<input type="checkbox" id="use1" name="rmerge" onClick="setUseSin(this);" checked><label for="use1">Sine</label>
+				<input type="checkbox" id="use2" name="rmerge" onClick="setUsePerlin(this);" checked><label for="use2">Perlin</label>
+				<input type="checkbox" id="use3" name="rmerge" onClick="setUseRand(this);" checked><label for="use3">Random</label>
+			</div>
+		</div>
+	</section>
+
+	<section></section>
+</div>
+
+<script>
+var d1,d2,d3,cf,
+	useSin = 1,
+	usePerlin = 1,
+	useRand = 1,
+	freq = 30,
+	mergeType=0;
+
+window.addEventListener('load',() => {		
+	d1 = new WaveData(WaveData.TSIN,	60,		0.21,	freq,new CanvasWave("canvas1")).gen(true);
+	d2 = new WaveData(WaveData.TPERLIN,	219,	0.11,	freq,new CanvasWave("canvas2")).setY(0.59).setZ(0.06).gen(true);
+	d3 = new WaveData(WaveData.TRANDOM,	10,		0,		freq,new CanvasWave("canvas3")).gen(true);
+	cf = new CanvasWave("canvasF");
+	buildFinal(false);
+});
+
+function preview(o){ o.previousSibling.innerHTML = o.value; }
+function setUseSin(o){ useSin = (o.checked)?1:0; buildFinal(false); }
+function setUsePerlin(o){ usePerlin = (o.checked)?1:0; buildFinal(false); }
+function setUseRand(o){ useRand = (o.checked)?1:0; buildFinal(false); }
+function setMerge(v){ mergeType = v; buildFinal(false); }
+
+function setY(d,o){
+	d.setY(o.value).gen(true);
+	o.nextSibling.innerHTML = o.value;
+	buildFinal(false);
+}
+
+function setZ(d,o){
+	d.setZ(o.value).gen(true);
+	o.nextSibling.innerHTML = o.value;
+	buildFinal(false);
+}
+
+function setScale(d,o){
+	d.setScale(o.value).gen(true);
+	o.nextSibling.innerHTML = o.value;
+	buildFinal(false);
+}
+
+function setAptitude(d,o){
+	d.setAptitude(o.value).gen(true);
+	o.nextSibling.innerHTML = o.value;
+	buildFinal(false);
+}
+
+//Frequency has to match on all wave forms, this makes merging easy
+function setFreq(o){
+	freq = o.value;
+	d1.setFreq(freq).gen(true);
+	d2.setFreq(freq).gen(true);
+	d3.setFreq(freq).gen(true);
+
+	buildFinal(true);
+}
+
+function buildFinal(doReset){
+	var cnt = useSin + usePerlin + useRand; //Used for average
+	var ary = [], val = 0;
+
+	for(var i=0; i < freq; i++){
+		val = 0;
+		if(useSin == 1) val += d1.ary[i];
+		if(usePerlin == 1) val += d2.ary[i];
+		if(useRand == 1) val += d3.ary[i];
+
+		if(mergeType == 1 && cnt > 1) val /= cnt;
+
+		ary.push(val);
+	}
+
+	cf.setData(ary,doReset);
+}
+</script>
+
+</body>
+</html>
